@@ -42,6 +42,7 @@ ChatBox{
 Box{
     layout: horizontal;
     align: right middle;
+    margin-right:2;
 }
 #startChat {
     margin-right: 1;
@@ -51,7 +52,9 @@ Box{
 }
 .chatBoxName{
     align: left middle;
+    width: 10%
 }
+
 
 Bottom {
     height: 100%;
