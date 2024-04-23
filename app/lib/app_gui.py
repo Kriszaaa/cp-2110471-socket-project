@@ -42,14 +42,15 @@ class Left(Static):
         ('r', 'add_chatbox', "Refresh list on group/clients")
     ]
 
-    def __init__(self, agent):
+    def __init__(self, agent, announce_buffer):
         super().__init__()
         self.agent = agent
+        self.announce_buffer = announce_buffer
 
     def compose(self):
         yield Top()
         yield Middle(self.agent)
-        yield Bottom()
+        yield Bottom(self.announce_buffer)
         yield Footer()
 
 
@@ -177,18 +178,30 @@ class Box(Static):
 
 
 class Bottom(Static):
+
+    BINDINGS = [
+        ('r','refresh_announce','Refresh Announcement')
+    ]
+    def __init__(self,announce_buffer):
+        super().__init__()
+        self.announce_buffer = announce_buffer
+
     def compose(self):
         with ScrollableContainer(id='announcementList'):
             yield Announcement()
         yield Broadcast()
     
-    # @on(Button.Pressed , '#broadCastButton')
-    # def setAccounce(self):
-    #     container = self.query_one('#announcementList')
-    #     container.mount(Announcement(label=self.query_one(Broadcast).broadcastMessage))
+    def action_refresh_announce(self):
+        announces = self.query(Announcement)
+        if announces:
+            announces.remove()
+        container = self.query_one('#announcementList')
 
+        for i in self.announce_buffer:
+            container.mount(Announcement(label=i))
+    
 class Announcement(Static):
-    def __init__(self,label ='announcement text' ):
+    def __init__(self,label ='default announcement text' ):
         super().__init__()
         self.label = label
         
@@ -323,7 +336,7 @@ class AppGUI(App):
 
         # Buffers
         self.buffer: MessageInfoBuffer = MessageInfoBuffer()
-
+        self.buffer.announcement = []
         # Success message
         #
 
@@ -400,6 +413,8 @@ class AppGUI(App):
                 self.buffer.announcement.append(announce_msg)
                 print(announce_msg)
 
+
+
             else:
                 if self.src[0]:
                     self.store_chat(
@@ -454,7 +469,7 @@ class AppGUI(App):
     def compose(self):
         yield Header()
         yield Footer()
-        yield Left(self.agent)
+        yield Left(self.agent,self.buffer.announcement)
         yield Right(m_buffer=self.buffer.private,
                     g_buffer=self.buffer.group,
                     src=self.src,
@@ -591,7 +606,7 @@ class AppGUI(App):
         self.agent.announce(data=self.query_one(Broadcast).broadcastMessage)
         container = self.query_one('#announcementList')
         container.mount(Announcement(label=self.query_one(Broadcast).broadcastMessage))
-        self.buffer.announcement.append(MessageInfo(sender='To Everyone',body=self.query_one(Broadcast).broadcastMessage))
+        # self.buffer.announcement.append(MessageInfo(sender='To Everyone',body=self.query_one(Broadcast).broadcastMessage))
 
     def on_mount(self) -> None:
         def update_chatname(new_chatname:str) ->None:
