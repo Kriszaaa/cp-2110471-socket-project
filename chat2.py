@@ -7,7 +7,6 @@ from textual.widget import Widget
 from textual.color import Color
 from textual.containers import Container
 
-
 from app.common import *
 from app.common.client import *
 
@@ -153,6 +152,16 @@ class Box(Static):
         yield Button(label='chat',name=self.gname+' '+self.chat_type, id='startChat')
         yield Button(label='pin',name=self.gname, id='pinChat')
 
+    # def startChat(self, name: str) -> None:
+    #     """Method to start chat."""
+    #     self.agent.join_group() == MessageProtocolResponse.OK:
+    #         print(f'Chat started in {name}')
+        
+    # def pinChat(self, name: str) -> None:
+    #     """Method to pin chat"""
+    #     log(f'Chat pinned in {name}')
+
+
 class Bottom(Static):
     def compose(self):
         with ScrollableContainer(id='announcementList'):
@@ -224,7 +233,6 @@ class ChatName(Static):
         # * switch mode (dark-light)
 
 
-
 class MessageBox(Static):
     def __init__(self, param, **kwargs):
         super().__init__(**kwargs)
@@ -259,7 +267,7 @@ class InputText(Static):
 
 # ! ============================ Control center ==========================================
 class ChatApp(App):
-    CSS_PATH = 'chat.tcss'
+    CSS_PATH = 'chat2.tcss'
     def __init__(self, remote_host: str, remote_port: int):
         super().__init__()
         self.agent = ChatAgent(client_name,
@@ -299,6 +307,7 @@ class ChatApp(App):
         log('create button was pressed')
         if self.agent.create_group(group_name=self.query_one(CreateGroup).groupname) == MessageProtocolResponse.OK :
             print("GroupName",self.query_one(CreateGroup).groupname)
+            self.query_one(CreateGroup).groupname = ''
     
     #Annouce broadcast
     @on(Input.Changed , '#broadCastInput')
@@ -313,9 +322,10 @@ class ChatApp(App):
         container.mount(Announcement(label=self.query_one(Broadcast).broadcastMessage))
 
 
+
     def on_mount(self) -> None:
         def update_chatname(new_chatname:str) ->None:
-            log('pressed chatnamae =',new_chatname)
+            log('pressed chatnamae = ',new_chatname)
             self.query_one(Right).chat_name = new_chatname
         self.watch(self.query_one(Middle) , 'pressed_chatName' , update_chatname)
 
